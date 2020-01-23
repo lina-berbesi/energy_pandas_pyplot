@@ -1,26 +1,30 @@
-mat_lon = df_stn.loc[0:499, 'lon'].values
-long_stn = np.repeat(np.reshape(mat_lon, (1, len(mat_lon))), df_merra2.shape[0], axis=0)
-long_all = np.reshape(df_merra2['lon'].values, (df_merra2.shape[0], 1))
-diff_long2 = (long_stn - long_all) ** 2
-
-mat_lat = df_stn.loc[0:499, 'lat'].values
-lat_stn = np.repeat(np.reshape(mat_lat, (1, len(mat_lat))), df_merra2.shape[0], axis=0)
-lat_all = np.reshape(df_merra2['lat'].values, (df_merra2.shape[0], 1))
-diff_lat2 = (lat_stn - lat_all) ** 2
-
-indices = np.sqrt(diff_lat2 + diff_long2).argmin(axis=0)
-
-test = df_stn.iloc[0:500, :].copy()
-test['ref_lat'] = df_merra2.loc[indices, 'lat'].values
-test['ref_lon'] = df_merra2.loc[indices, 'lon'].values
-
-np.unique(diff_long2.argmin(axis=0), return_counts=True)
-
-df_merra2.head()
-df_stn.head()
-
-
 '''
+def chunks(df, n):
+    chks_str = []
+    chks_end = []
+    chks_fnl = []
+    ic = 0
+    cnt = -1
+    while ic < len(df):
+        cnt = cnt + 1
+        cnt_prev = cnt - 1
+        ic = n + ic
+        if cnt == 0:
+            pv = 0
+            chks_end.append(n)
+            chks_str.append(0)
+        elif ic > len(df):
+            ic = len(df)
+            chks_end.append(ic)
+            chks_str.append(chks_end[cnt_prev])
+        else:
+            chks_end.append(ic)
+            chks_str.append(chks_end[cnt_prev])
+    return chks_str, chks_end, chks_fnl
+
+chks_stn_str,chks_stn_end= chunks(df_stn, 500)
+print(chks_stn_str,chks_stn_end)
+
 def euclidean_distance(df1, df2):  # issue size memory
     dist_temp = pd.DataFrame(np.zeros((3,3)))
     for i in range(3):
@@ -36,3 +40,10 @@ def euclidean_distance(df1, df2):  # issue size memory
 knn = euclidean_distance(df_merra2, df_stn)
 print(knn)
 '''
+
+
+
+
+
+
+

@@ -1,3 +1,47 @@
+#IDEAM Stations
+import glob
+import pandas as pd
+import re
+import time
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Geographical information - where the measurements were taken
+area_info = pd.read_excel('CATALOGO_IDEAM_2012-usuarios.xls', sheet_name='Hoja1', index_col=0, nrows=4438)
+area_info.shape
+print(area_info.columns)
+area_info = area_info[
+    ['CODIGO', 'LATITUD', 'Unnamed: 13', 'Unnamed: 14', 'Unnamed: 15', 'LONGITUD', 'Unnamed: 17', 'Unnamed: 18',
+     'Unnamed: 19']]
+area_info['area_code'] = area_info["CODIGO"].astype('str')
+area_info['latitude_dms'] = area_info["LATITUD"].astype(str) + "°" + area_info["Unnamed: 13"].astype(str) + "'" + \
+                            area_info["Unnamed: 14"].astype(str) + "\"" + area_info["Unnamed: 15"].astype(str)
+area_info['longitude_dms'] = area_info["LONGITUD"].astype(str) + "°" + area_info["Unnamed: 17"].astype(str) + "'" + \
+                             area_info["Unnamed: 18"].astype(str) + "\"" + area_info["Unnamed: 19"].astype(str)
+df_area = area_info[['area_code', 'latitude_dms', 'longitude_dms']]
+df_area['area_code'] = area_info["area_code"].astype('category')
+print(df_area.head(5))
+print(df_area.dtypes)
+
+
+# Convert DMS to DD
+def dms_dd(dms):
+    parts = re.split('[°\'"]+', dms)
+    de = float(parts[0])
+    mi = float(parts[1])
+    se = float(parts[2])
+    dr = parts[3]
+    dd = de + mi / 60 + se / (60 * 60)
+    if dr == 'S' or dr == 'W':
+        dd *= -1
+    return dd;
+
+
+df_area['latitude_dd'] = df_area['latitude_dms'].apply(dms_dd)
+df_area['longitude_dd'] = df_area['longitude_dms'].apply(dms_dd)
+df_area.head(5)
+print(df_area.dtypes)
+
 # DatabaseMERRA2:https://disc.gsfc.nasa.gov/datasets/M2TMNXSLV_5.12.4/summary?keywords=M2TMNXSLV_5.12.4
 # Example of plotting time series: https://www.wemcouncil.org/wp/wemc-tech-blog-2-plotting-netcdf-with-python/
 
@@ -104,71 +148,36 @@ df_stn.info(memory_usage='deep')  # 334 KB
 
 print(len(df_merra2), len(df_stn))
 
-def chunks(df, n):
-    chks_str = []
-    chks_end = []
-    chks_fnl = []
-    ic = 0
-    cnt = -1
-    while ic < len(df):
-        cnt = cnt + 1
-        cnt_prev = cnt - 1
-        ic = n + ic
-        if cnt == 0:
-            pv = 0
-            chks_end.append(n)
-            chks_str.append(0)
-            chks_fnl.append(str(chks_str).strip('[]')+':'+str(chks_end).strip('[]'))
-        elif ic > len(df):
-            ic = len(df)
-            chks_end.append(ic)
-            chks_str.append(chks_end[cnt_prev])
-            chks_fnl.append(str(chks_str[cnt]).strip('[]')+':'+str(chks_end[cnt]).strip('[]'))
-        else:
-            chks_end.append(ic)
-            chks_str.append(chks_end[cnt_prev])
-            chks_fnl.append(str(chks_str[cnt]).strip('[]')+':'+str(chks_end[cnt]).strip('[]'))
-    return chks_str, chks_end, chks_fnl
+def chunks(df,n):
+    chnk=np.round(np.arange(0, df.shape[0] + df.shape[0]/ n, df.shape[0]/ n)).astype(int)
+    return(chnk)
 
-chks_stn_str,chks_stn_end,chks_stn_fnl = chunks(df_stn, 500)
-print(chks_stn_str,chks_stn_end, chks_stn_fnl)
+vector = chunks(df_stn, 10)
 
-n1_str=chks_stn_str[i]
-n1_end=chks_stn_end[i]
+dist = pd.DataFrame([])
 
-def euclidean_distance(df1, df2, n1_str , n1_end, n2_str, n2_end):  # issue size memory
-    dist_temp = pd.DataFrame(np.zeros(((n1_end - n1_str),(n2_end-n2_str))))
-    for i in range(n1_str,n1_end):
-        for j in range(n2_str,n2_end):
-            dist_temp.iloc[i, j] = np.sqrt((df2.lat[j] - df1.lat[i]) ** 2 + (df2.lon[j] - df1.lon[i]) ** 2)
-            dist_temp['coord'] = '(' + str(df1.lat[i]) + ',' + str(df1.lon[i]) + ')'
-            dist_temp = dist_temp.rename({j: df2.area_code[j]}, axis='columns')
-            dist = dist_temp.set_index('coord')
-            min_stn = pd.DataFrame(dist.idxmin()).reset_index()
-            min_stn.columns = ['area_code', 'coord']
-    return min_stn
+for i in np.arange(len(vector)-1):
 
-knn = euclidean_distance(df_merra2, df_stn)
-print(knn)
+    print(vector[i], (vector[i + 1] - 1))
 
-for i in range(0,len(chks_stn_str)):
-    print(chks_stn_str[i],chks_stn_end[i])
-
-    mat_lon = df_stn.loc[chks_stn_str[i]:chks_stn_end[i], 'lon'].values
+    mat_lon = df_stn.loc[vector[i]:(vector[i + 1] - 1), 'lon'].values
     long_stn = np.repeat(np.reshape(mat_lon, (1, len(mat_lon))), df_merra2.shape[0], axis=0)
     long_all = np.reshape(df_merra2['lon'].values, (df_merra2.shape[0], 1))
     diff_long2 = (long_stn - long_all) ** 2
 
-    mat_lat = df_stn.loc[chks_stn_str[i]:chks_stn_end[i], 'lat'].values
+    mat_lat = df_stn.loc[vector[i]:(vector[i + 1] - 1), 'lat'].values
     lat_stn = np.repeat(np.reshape(mat_lat, (1, len(mat_lat))), df_merra2.shape[0], axis=0)
     lat_all = np.reshape(df_merra2['lat'].values, (df_merra2.shape[0], 1))
     diff_lat2 = (lat_stn - lat_all) ** 2
 
     indices = np.sqrt(diff_lat2 + diff_long2).argmin(axis=0) # this is not working it is given indices of 6k
 
-    test = df_stn.iloc[chks_stn_str[i]:chks_stn_end[i], :].copy()
-    test['ref_lat'] = df_merra2.loc[indices, 'lat'].values #does not work for the same indices reason from above
-    test['ref_lon'] = df_merra2.loc[indices, 'lon'].values
+    dist_temp = df_stn.iloc[vector[i]:vector[i + 1], :].copy()
+    dist_temp['ref_lat'] = df_merra2.loc[indices, 'lat'].values #does not work for the same indices reason from above
+    dist_temp['ref_lon'] = df_merra2.loc[indices, 'lon'].values
 
+    dist = dist.append(dist_temp)
 
+dist['ref'] = ['('+ str(i) +','+str(j)+')' for i, j  in zip(dist.ref_lat, dist.ref_lon)]
 
+dist.to_csv('stn_merra2.csv')
