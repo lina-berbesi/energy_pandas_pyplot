@@ -11,14 +11,15 @@ area_info = pd.read_excel('CATALOGO_IDEAM_2012-usuarios.xls', sheet_name='Hoja1'
 area_info.shape
 print(area_info.columns)
 area_info = area_info[
-    ['CODIGO', 'LATITUD', 'Unnamed: 13', 'Unnamed: 14', 'Unnamed: 15', 'LONGITUD', 'Unnamed: 17', 'Unnamed: 18',
+    ['CODIGO', 'LATITUD', 'ESTADO', 'Unnamed: 13', 'Unnamed: 14', 'Unnamed: 15', 'LONGITUD', 'Unnamed: 17', 'Unnamed: 18',
      'Unnamed: 19']]
 area_info['area_code'] = area_info["CODIGO"].astype('str')
+area_info['status'] = area_info["ESTADO"].astype('str')
 area_info['latitude_dms'] = area_info["LATITUD"].astype(str) + "°" + area_info["Unnamed: 13"].astype(str) + "'" + \
                             area_info["Unnamed: 14"].astype(str) + "\"" + area_info["Unnamed: 15"].astype(str)
 area_info['longitude_dms'] = area_info["LONGITUD"].astype(str) + "°" + area_info["Unnamed: 17"].astype(str) + "'" + \
                              area_info["Unnamed: 18"].astype(str) + "\"" + area_info["Unnamed: 19"].astype(str)
-df_area = area_info[['area_code', 'latitude_dms', 'longitude_dms']]
+df_area = area_info[['area_code','status', 'latitude_dms', 'longitude_dms']]
 df_area['area_code'] = area_info["area_code"].astype('category')
 print(df_area.head(5))
 print(df_area.dtypes)
