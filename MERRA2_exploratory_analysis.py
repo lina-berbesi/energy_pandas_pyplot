@@ -7,7 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Geographical information - where the measurements were taken
-area_info = pd.read_excel('CATALOGO_IDEAM_2012-usuarios.xls', sheet_name='Hoja1', index_col=0, nrows=4438)
+area_info = pd.read_excel('IDEAM\CATALOGO_IDEAM_2012-usuarios.xls', sheet_name='Hoja1', index_col=0, nrows=4438)
 area_info.shape
 print(area_info.columns)
 area_info = area_info[
@@ -54,20 +54,33 @@ from matplotlib import pyplot as plt
 import numpy as np
 import xarray as xr
 import matplotlib.patches as mpatches
+import matplotlib
+import datetime as dt
 
 # load NetCDF file into variable - using xarray open dataset function
-data = xr.open_dataset('MERRA2_300.tavgU_2d_flx_Nx.201001.nc4')
+data = xr.open_dataset('MERRA2\M2TUNXFLX\MERRA2_300.tavgU_2d_flx_Nx.201001.nc4')
 
+data.count
 # calculating wind speed
 # U2M is 2-meter eastward wind m/s and V2M is 2-meter northward wind m/s
 
 data_new = data
 data_new['UVLML'] = (data['ULML'] ** 2 + data['VLML'] ** 2) ** (1 / 2)
 
+
 data_loc = data_new.sel(lon=14, lat=40, method='nearest')
+df_data = data_loc.to_dataframe()
 
 # plot time series
+
 data_loc['UVLML'].plot.line('o-', color='red', figsize=(10, 6))
+df_final = df_data.reset_index()
+type(df_final['time'][0])
+
+df_final['date'] = pd.to_datetime(df_final['time'], unit='s')
+df_final['hour'] = df_final['date'].dt.hour
+
+df_final.plot(y='UVLML', x='hour', color='blue', grid=True)
 
 # GETTING INFORMATION JUST FROM SPECIFIC COORDINATES
 
@@ -101,7 +114,7 @@ import xarray as xr
 import matplotlib.patches as mpatches
 
 # load NetCDF file into variable - using xarray open dataset function
-data = xr.open_dataset('MERRA2_300.tavgM_2d_slv_Nx.201001.nc4')
+data = xr.open_dataset('MERRA2\M2TMNXSLV\MERRA2_300.tavgM_2d_slv_Nx.201001.nc4')
 
 # calculating wind speed
 # U2M is 2-meter eastward wind m/s and V2M is 2-meter northward wind m/s
@@ -140,6 +153,7 @@ df_data = data_sel.to_dataframe()
 
 df_data.iloc[2,]
 
+#df_merra2 comes from one file only because this is for mapping the coordinates
 df_merra2 = df_data.reset_index()
 
 df_merra2.columns.values
@@ -181,4 +195,5 @@ for i in np.arange(len(vector)-1):
 
 dist['ref'] = ['('+ str(i) +','+str(j)+')' for i, j  in zip(dist.ref_lat, dist.ref_lon)]
 
-dist.to_csv('stn_merra2.csv')
+dist.to_csv('MERRA2\stn_merra2.csv')
+

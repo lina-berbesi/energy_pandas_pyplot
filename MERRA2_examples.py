@@ -16,7 +16,7 @@ import xarray as xr
 import matplotlib.patches as mpatches
 
 # load NetCDF file into variable - using xarray open dataset function
-data = xr.open_dataset('MERRA2_300.tavgM_2d_slv_Nx.201001.nc4')
+data = xr.open_dataset('MERRA2\M2TMNXSLV\MERRA2_300.tavgM_2d_slv_Nx.201001.nc4')
 
 #calculating wind speed
 # U2M is 2-meter eastward wind m/s and V2M is 2-meter northward wind m/s
@@ -65,8 +65,8 @@ from netCDF4 import Dataset
 import numpy as np
 import pandas as pd
 
-#data = Dataset('MERRA2_300.tavg1_2d_slv_Nx.20100601.nc4', mode='r')
-data = Dataset('MERRA2_300.tavgM_2d_slv_Nx.201001.nc4', mode = 'r')
+#data = Dataset('MERRA2\M2T1NXSLV\MERRA2_300.tavg1_2d_slv_Nx.20100601.nc4', mode='r')
+data = Dataset('MERRA2\M2TMNXSLV\MERRA2_300.tavgM_2d_slv_Nx.201001.nc4', mode = 'r')
 
 # Run the following cell to see the MERRA2 metadata. This line will print attribute and variable information. From the 'variables(dimensions)' list, choose which variable(s) to read in below:
 print(data)
@@ -212,8 +212,8 @@ import os
 
 # Read in NetCDF4 file (add a directory path if necessary):
 
-#data = Dataset('MERRA2_400.instU_2d_lfo_Nx.201901.nc4', mode='r')
-data = Dataset('MERRA2_300.tavgM_2d_slv_Nx.201001.nc4', mode='r')
+#data = Dataset('MERRA2\M2IUNXLFO\MERRA2_400.instU_2d_lfo_Nx.201901.nc4', mode='r')
+data = Dataset('MERRA2\M2TMNXSLV\MERRA2_300.tavgM_2d_slv_Nx.201001.nc4', mode='r')
 
 # Run the following line below to print MERRA-2 metadata. This line will print attribute and variable information. From the 'variables(dimensions)' list, choose which variable(s) to read in below.
 print(data)

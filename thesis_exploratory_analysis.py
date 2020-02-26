@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 ###Previous Information
 
 # Geographical information - where the measurements were taken
-area_info = pd.read_excel('CATALOGO_IDEAM_2012-usuarios.xls', sheet_name='Hoja1', index_col=0, nrows=4438)
+area_info = pd.read_excel('IDEAM\CATALOGO_IDEAM_2012-usuarios.xls', sheet_name='Hoja1', index_col=0, nrows=4438)
 area_info.shape
 print(area_info.columns)
 area_info = area_info[
@@ -52,11 +52,11 @@ print(df_area.dtypes)
 df_var = pd.DataFrame()
 variables = ['BSHG_TT_M', 'VVAG_MEDIA_M', 'VVMX_MX_M', 'DVMXAG_MX_M']
 for i in variables:
-    filenames = glob.glob(str(i) + '*.{}'.format('data'))
+    filenames = glob.glob('IDEAM/' + str(i) + '*.{}'.format('data'))
     df = pd.DataFrame()
     for f in filenames:
         df_n = pd.read_csv(f)
-        area = re.sub(r'.data|(\w+@)', '', f)
+        area = re.sub(r'\@(.*[^\/]+)\.data', '', f) #area = re.sub(r'\@(.*)\.data', '', f) #area = re.sub(r'.data|(\w+@)', '', f)
         var = re.search(r'\w+[^@]', f)
         new = df_n["Fecha|Valor"].str.split("|", n=1, expand=True)
         df_n["date"] = pd.to_datetime(new[0])
@@ -87,6 +87,10 @@ print(maxdat, mindat)
 df_join = pd.merge(df_var, df_area, on='area_code', how='inner')
 df_join.head(5)
 
+df_join.shape
+
+df_join.to_csv('IDEAM\ideam_data.csv')
+
 #Table with variable meaning
 data_rows = [('BSHG_TT_M','Sun Intensity','hours/sun'),
              ('VVAG_MEDIA_M','Average Wind Speed', 'm/s'),
@@ -100,8 +104,7 @@ for j in range(2, 6):
     print(vars)
     desc = df_plot.loc[df_plot['var'] == vars, 'desc'].values[0]
     unit = df_plot.loc[df_plot['var'] == vars, 'units'].values[0]
-    print(vars,desc,unit)
-
+    print(vars, desc, unit)
     #Graphs
     df_join.plot(x="date",y=vars)
     plt.show()
