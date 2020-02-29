@@ -1,6 +1,22 @@
 #Daily information of the month
 
+#Example full file M2I1NXASM
+
+data = xr.open_dataset('MERRA2/M2I1NXASM/MERRA2_400.inst1_2d_asm_Nx.20180101.nc4.nc4')
+#data = xr.open_dataset('MERRA2/M2I1NXASM/MERRA2_400.inst1_2d_asm_Nx.20180101.nc4')
+#data = xr.open_dataset('MERRA2/M2I1NXASM/MERRA2_400.inst1_2d_asm_Nx.20180101.SUB.nc')
+
+data_new = data
+mask = ((data_new.coords["lat"] > -5) & (data_new.coords["lat"] < 16) & (data_new.coords["lon"] > -82) & (
+            data_new.coords["lon"] < 74))
+data_sel = data_new.where(mask, drop=True)# indexing x-array
+df_data = data_sel.to_dataframe()
+data_pd_2 = df_data.reset_index()
+
+print(data_pd_2['time'].unique())
+
 #M2I1NXASM: MERRA-2 inst1_2d_asm_Nx: 2d,1-Hourly,Instantaneous,Single-Level,Assimilation,Single-Level Diagnostics V5.12.4
+#Instantaneus means just one hour per day
 
 import netCDF4
 from matplotlib import pyplot as plt
@@ -26,6 +42,7 @@ print(df_xasm.columns)
 df_mean_xasm = df_xasm.groupby(['time'])['UV2M'].mean().reset_index()
 
 #M2T1NXSLV: MERRA-2 tavg1_2d_slv_Nx: 2d,1-Hourly,Time-Averaged,Single-Level,Assimilation,Single-Level Diagnostics V5.12.4
+#Time-averaged means multiple observations per day -one per hour
 
 import netCDF4
 from matplotlib import pyplot as plt
@@ -55,4 +72,6 @@ df_mean_xasm.plot(x='time', y='UV2M', kind='line', color='blue', grid=True, labe
 
 fig10, ax10 = plt.subplots()
 df_mean_xslv.plot(x='time', y='UV2M', kind='line', color='green', grid=True, label='UV2M-XSLV', ax=ax10)
+
+#M2IUNXLFO: MERRA-2 instU_2d_lfo_Nx: 2d,diurnal,Instantaneous,Single-Level,Assimilation,Land Surface Forcings V5.12.4
 
